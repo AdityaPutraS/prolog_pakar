@@ -2,6 +2,10 @@
 
 
 mulai dengan ?- mulai.     */
+:- include('file_external.pl').
+:- include('utility.pl').
+:- dynamic ya/1,tidak/1.
+:- dynamic hipotesis/1.
 
 
 mulai :- hipotesis(Jeruk),
@@ -10,6 +14,43 @@ write(Jeruk),
 nl,
 ulang.
 
+tambah :- 
+    write('Masukan nama jeruk nya : '),
+    read(NamaJeruk),
+    write('Ada berapa ciri-ciri ? '),
+    read(BanyakCiri),
+    forall(between(1, BanyakCiri, I), (
+        write('Masukkan ciri ciri ke -'), write(I), write(' : '),
+        read(Ciri),
+        write('Ciri jeruk '), write($NamaJeruk),write(' : '),write($Ciri)
+    )),
+    write('Data jeruk '),
+    write($NamaJeruk),
+    write(' berhasil dimasukkan.'), nl.
+
+tambahJeruk([]) :- !.    
+tambahJeruk([Jeruk1|Tail]) :-
+    splitList(Jeruk1, '\n', JS),
+    listLength(JS, LJS),
+    ambil(JS, 1, NJ),
+    listToStr(NJ, NamaJeruk),
+    write(NamaJeruk), nl,
+    LenJS is LJS-1,
+    forall(between(2, LenJS, J), (
+        NoSyarat is J-1,
+        write('Syarat '), write(NoSyarat), write(' : '),
+        ambil(JS, J, QueryJ),
+        
+        listToStr(QueryJ, SyaratJ),
+        write(SyaratJ), nl
+    )),
+    nl,
+    tambahJeruk(Tail).
+updateData :-
+    baca_file('d.txt', [_|S]),
+    splitList(S, '-', Sp),
+    tambahJeruk(Sp),
+    write('Selesai update'), nl.
 
 /* hipotesis yang akan dites */
 hipotesis(jeruk_nipis)   :- nipis, !.
@@ -114,7 +155,7 @@ asam :- periksa(memiliki_kandungan_asam_sitrat_tinggi).
 tanya(Pertanyaan) :-
 write('Apakah jeruk itu mempunyai ciri '),
 write(Pertanyaan),
-write(‘?‘),
+write('?'),
 read(Jawaban),
 nl,
 ( (Jawaban== ya ; Jawaban == y)
@@ -122,8 +163,6 @@ nl,
 assert(ya(Pertanyaan)) ;
 assert(tidak(Pertanyaan)), fail).
 
-
-:- dynamic ya/1,tidak/1.
 
 
 /* Bagaimana memeriksa sesuatu */
