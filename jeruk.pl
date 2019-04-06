@@ -6,6 +6,7 @@ mulai dengan ?- mulai.     */
 :- include('utility.pl').
 :- dynamic ya/1,tidak/1.
 :- dynamic hipotesis/1.
+:- dynamic periksa/1.
 
 
 mulai :- hipotesis(Jeruk),
@@ -14,45 +15,72 @@ write(Jeruk),
 nl,
 ulang.
 
-tambah :- 
-    write('Masukan nama jeruk nya : '),
-    read(NamaJeruk),
-    write('Ada berapa ciri-ciri ? '),
-    read(BanyakCiri),
-    forall(between(1, BanyakCiri, I), (
-        write('Masukkan ciri ciri ke -'), write(I), write(' : '),
-        read(Ciri),
-        write('Ciri jeruk '), write($NamaJeruk),write(' : '),write($Ciri)
-    )),
-    write('Data jeruk '),
-    write($NamaJeruk),
-    write(' berhasil dimasukkan.'), nl.
-
-tambahJeruk([]) :- !.    
+normSyarat([], []) :- !.
+normSyarat([' '|T], ['_'|H]) :-
+    normSyarat(T, H), !.
+normSyarat([X|T], [XLower|H]) :-
+    string_lower(X, XLower),
+    normSyarat(T, H), !.
+    
+concatSyarat([L], A, Hasil) :-
+    normSyarat(L, Last),
+    concatList(['periksa('], Last, Temp1),
+    concatList(Temp1, [')'], Temp2),
+    concatList(A, Temp2, H1),
+    concatList(H1, [')'], Hasil), !.
+    
+concatSyarat([S|T], A, Hasil) :-
+    normSyarat(S, Syarat),
+    concatList(['periksa('], Syarat, Temp1),
+    concatList(Temp1, [')'], Temp2),
+    concatList(A, Temp2, H1),
+    concatList(H1, [', '], H2),
+    concatSyarat(T, H2, Hasil), !.
+ 
+tambahJeruk([]) :- !.     
 tambahJeruk([Jeruk1|Tail]) :-
-    splitList(Jeruk1, '\n', JS),
-    listLength(JS, LJS),
-    ambil(JS, 1, NJ),
-    listToStr(NJ, NamaJeruk),
-    write(NamaJeruk), nl,
-    LenJS is LJS-1,
-    forall(between(2, LenJS, J), (
-        NoSyarat is J-1,
-        write('Syarat '), write(NoSyarat), write(' : '),
-        ambil(JS, J, QueryJ),
-        
-        listToStr(QueryJ, SyaratJ),
-        write(SyaratJ), nl
-    )),
-    nl,
+    splitList(Jeruk1, '\n', [_, NJ|Syarat]),
+    normSyarat(NJ, NJNorm),
+    concatList(NJNorm, [' :- '], Awal),
+    concatSyarat(Syarat, [''], Hasil),
+    concatList(Awal, Hasil, StrFakta),
+    concatList(['('], StrFakta, Fakta),
+    listToStr(Fakta, StringFakta),
+    /*write('String Fakta : '), write(StringFakta), nl,*/
+    atom_to_term(StringFakta, Term, _),
+    assert(Term),
+    listToStr(NJNorm, NamaJeruk),
+    concatList(['(hipotesis('], NJNorm, Hipot),
+    concatList(Hipot, [') :- '], Hipot2),
+    concatList(Hipot2, NJNorm, Hipot3),
+    concatList(Hipot3, [', !)'], Hipot4),
+    listToStr(Hipot4, StringHipot),
+    /*write('String Hipot : '), write(StringHipot), nl,*/
+    atom_to_term(StringHipot, TermHipot, _),
+    assert(TermHipot),
+    write(NamaJeruk), write(' berhasil ditambahkan'), nl,
     tambahJeruk(Tail).
+
+resetData :-
+    write('Hapus semua hipotesis'),nl,
+    retract(hipotesis(_)), fail.
+resetData :-
+    write('Hapus semua periksa'),nl,
+    retract(periksa(_)), fail.
+resetData :-
+    write('Hapus semua ya/tidak'),nl,
+    ulang, fail.
+resetData.
+
 updateData :-
+    resetData,
     baca_file('d.txt', [_|S]),
     splitList(S, '-', Sp),
     tambahJeruk(Sp),
+    assert((hipotesis(tidak_dikenal) :- !)),
     write('Selesai update'), nl.
 
-/* hipotesis yang akan dites */
+/* hipotesis yang akan dites
 hipotesis(jeruk_nipis)   :- nipis, !.
 hipotesis(jeruk_sukade)     :- sukade, !.
 hipotesis(jeruk_bali)   :- jeruk_bali, !.
@@ -65,11 +93,11 @@ hipotesis(jeruk_siam):- siam, !.
 hipotesis(jeruk_mandarin):- mandarin, !.
 hipotesis(jeruk_mikam):- mikam, !.
 hipotesis(jeruk_nagami):- nagami, !.
-hipotesis(jeruk_jari_budha):- jari_budha, !.
-hipotesis(tidak_dikenali).             /* tidak ada diagnosa */
+hipotesis(jeruk_jari_budha):- jari_budha, !.   
+hipotesis(tidak_dikenali). 
+*/
 
-
-/* aturan identifikasi cabai */
+/* aturan identifikasi jeruk
 nipis :- asam,
 periksa(kulit_tebal_dan_sulit_dibuka),
 periksa(berwarna_hijau_dan_kekuningan),
@@ -94,7 +122,7 @@ keprok :- manis_sedikit_asam,
 periksa(kulit_tipis),
 periksa(ukuran_kecil),
 periksa(banyak_biji_dan_daging_tebal).
-
+-----------------------------------------------
 purut :- asam,
 periksa(kulit_buah_keriput_dan_tak_beraturan),
 periksa(daging_buah_tipis_dan_banyak_biji),
@@ -145,11 +173,11 @@ periksa(berbentuk_seperti_jari),
 periksa(berwarna_kuning),
 periksa(digunakan_untuk_pengharum_ruangan_dan_masakan).
 
-/* aturan klasifikasi */
+
 manis :- periksa(memiliki_kandungan_gula_yang_tinggi).
 manis_sedikit_asam :- periksa(memiliki_kandungan_manis_dan_asam_seimbang).
 asam :- periksa(memiliki_kandungan_asam_sitrat_tinggi).
-
+*/
 
 /* Bagaimana cara bertanya */
 tanya(Pertanyaan) :-
@@ -176,7 +204,7 @@ fail ;
 tanya(S))).
 
 
-/* ulang semua penyataan ya/tidak */
+/* ulang semua penyataan yatidak */
 ulang :- retract(ya(_)),fail.
 ulang :- retract(tidak(_)),fail.
 ulang.

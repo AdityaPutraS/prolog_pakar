@@ -1,20 +1,27 @@
 -
-jeruk_bali
-mantap
-manis
-enak pokoknya
+jeruk nipis
+memiliki kandungan asam sitrat tinggi
+kulit tebal dan sulit dibuka
+berwarna hijau dan kekuningan
+daging tebal dan tidak ada serabut
 -
-jeruk_jawa
-ew
-asem
-asem pokoknya
+jeruk sukade
+memiliki kandungan asam sitrat tinggi
+kulit tebal
+bagian dalam dan bulir kecil
+buahnya jarang dikonsumsi
+kulitnya dipakai masakan dan selai
 -
-jeruk_bandung
-wow
-wowa
-wowb pokoknya
+jeruk bali
+memiliki kandungan manis dan asam seimbang
+ukuran buah besar
+kulit tebal
+memiliki sedikit biji
+dalam buah berwarna putih sampai kemerahan
 -
-jeruk_negara
-yes
-yesa
-yesn't pokoknya
+jeruk_keprok
+memiliki kandungan manis dan asam seimbang
+kulit tipis
+ukuran kecil
+banyak biji dan daging tebal
+-
